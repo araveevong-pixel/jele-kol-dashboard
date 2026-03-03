@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOL Overview Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+<style>
+:root {
+  --bg: #eef2f7;
+  --card: #ffffff;
+  --card-hover: #f7f9fc;
+  --border: #e4e8ee;
+  --text: #1a2332;
+  --text2: #6b7a8d;
+  --blue: #3370ff;
+  --blue-light: #e8f0ff;
+  --green: #22c55e;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --gold: #FFD700;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+  --gap: 12px;
+  --radius: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.header{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header img,.header svg{width:24px;height:24px}
+.header .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--blue)}
+.header .title{font-size:14px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.header .title::before{content:'📊';font-size:16px}
+.header .actions{margin-left:auto;display:flex;gap:8px}
+.header .btn{padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.header .btn:hover{background:var(--card-hover)}
+.header .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+.container{max-width:1600px;margin:0 auto;padding:16px}
+
+/* KPI Grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--gap);margin-bottom:var(--gap)}
+.kpi-card{background:var(--card);border-radius:var(--radius);padding:16px 20px;border:1px solid var(--border);transition:box-shadow .2s}
+.kpi-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+.kpi-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:4px}
+.kpi-value{font-size:32px;font-weight:800;color:var(--text);letter-spacing:-1px}
+.kpi-value.blue{color:var(--blue)}
+.kpi-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.kpi-card .discrepancy{font-size:11px;color:#999;margin-top:4px}
+
+/* Section */
+.section{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:var(--gap)}
+.section-title{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)}
+.section-subtitle{font-size:12px;color:var(--text2);font-weight:400;margin-left:8px}
+
+/* Grid layouts */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap)}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:var(--gap)}
+
+/* Chart container */
+.chart-wrap{position:relative;height:300px}
+.chart-wrap canvas{width:100%!important;height:100%!important}
+.chart-wrap.tall{height:400px}
+
+/* Data Table */
+.tbl-wrap{overflow-x:auto}
+.tbl-toolbar{display:flex;gap:12px;margin-bottom:8px;font-size:13px;color:var(--text2);align-items:center}
+.tbl-toolbar .tbl-btn{padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{text-align:left;padding:8px 12px;background:#f7f9fc;border-bottom:2px solid var(--border);font-weight:600;color:var(--text2);font-size:11px;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0}
+table.data th:hover{color:var(--text)}
+table.data td{padding:8px 12px;border-bottom:1px solid #f0f2f5;white-space:nowrap}
+table.data tr:hover td{background:#f7f9fc}
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-tiktok{background:#fe2c5515;color:#fe2c55}
+.badge-food{background:#22c55e15;color:#22c55e}
+.badge-family{background:#f59e0b15;color:#f59e0b}
+.badge-beauty{background:#ec489915;color:#ec4899}
+.badge-nano{background:#93c5fd44;color:#2563eb}
+.badge-micro{background:#86efac44;color:#16a34a}
+.badge-macro{background:#fde68a44;color:#d97706}
+.badge-mega{background:#f0abfc44;color:#a21caf}
+
+/* Ranking Podium */
+.podium{text-align:center;padding:16px 0}
+.podium-top{display:flex;justify-content:center;align-items:flex-end;gap:8px;margin-bottom:16px}
+.podium-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+.podium-item .medal{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;position:relative}
+.medal-1{background:linear-gradient(135deg,#FFD700,#FFA500);box-shadow:0 2px 8px rgba(255,215,0,0.4)}
+.medal-2{background:linear-gradient(135deg,#C0C0C0,#A8A8A8);box-shadow:0 2px 8px rgba(192,192,192,0.4)}
+.medal-3{background:linear-gradient(135deg,#CD7F32,#B8860B);box-shadow:0 2px 8px rgba(205,127,50,0.4)}
+.podium-item .name{font-size:11px;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium-item .val{font-size:16px;font-weight:800;color:var(--text)}
+.rank-list{text-align:left}
+.rank-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f2f5;font-size:13px}
+.rank-row .rank-num{color:var(--text2);width:24px}
+.rank-row .rank-name{flex:1;margin-left:4px}
+.rank-row .rank-val{font-weight:600}
+
+/* Donut legend */
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-canvas{width:100px;height:100px}
+.donut-legend{font-size:12px}
+.donut-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+
+/* Filters */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--gap);align-items:center}
+.filter-bar select,.filter-bar input{padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff}
+.filter-bar label{font-size:12px;color:var(--text2);font-weight:500}
+
+/* Import section */
+.import-section{background:linear-gradient(135deg,#e8f0ff,#f0f4ff);border:2px dashed var(--blue);border-radius:var(--radius);padding:32px;text-align:center;margin-bottom:var(--gap);cursor:pointer;transition:background .2s}
+.import-section:hover{background:linear-gradient(135deg,#dde8ff,#e8f0ff)}
+.import-section h3{font-size:16px;color:var(--blue);margin-bottom:4px}
+.import-section p{font-size:13px;color:var(--text2)}
+
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3,.grid-2-1{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#3370ff"/><path d="M7 8h10M7 12h10M7 16h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    KOL Dashboard
+  </div>
+  <div class="title">Overview Dashboard</div>
+  <div class="actions">
+    <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn" onclick="exportJSON()">📥 Export JSON</button>
+    <button class="btn" onclick="document.getElementById('csvFile').click()">📤 Import CSV</button>
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)">
+    <button class="btn" onclick="document.getElementById('jsonFile').click()">📤 Import JSON</button>
+    <input type="file" id="jsonFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn btn-primary" onclick="addKOLPrompt()">+ Add KOL</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Filters -->
+<div class="filter-bar">
+  <label>Platform:</label>
+  <select id="filterPlatform" onchange="applyFilters()"><option value="all">All</option></select>
+  <label>Category:</label>
+  <select id="filterCategory" onchange="applyFilters()"><option value="all">All</option></select>
+  <label>Tier:</label>
+  <select id="filterTier" onchange="applyFilters()"><option value="all">All</option></select>
+  <label>Batch:</label>
+  <select id="filterBatch" onchange="applyFilters()"><option value="all">All</option></select>
+  <label>Status:</label>
+  <select id="filterStatus" onchange="applyFilters()"><option value="all">All</option><option value="posted">✅ Posted</option><option value="pending">⏳ Pending</option></select>
+  <label>KOL:</label>
+  <select id="filterKOL" onchange="applyFilters()"><option value="all">All Creators</option></select>
+</div>
+
+<!-- KPI Row 1 -->
+<div class="kpi-grid" id="kpiRow1"></div>
+
+<!-- KPI Row 2 -->
+<div class="kpi-grid" id="kpiRow2"></div>
+
+<!-- KPI Row 3 -->
+<div class="kpi-grid" id="kpiRow3"></div>
+
+<!-- Most View by Creators Chart -->
+<div class="section">
+  <div class="section-title">Most View by Creators</div>
+  <div class="chart-wrap tall"><canvas id="viewsByCreatorChart"></canvas></div>
+</div>
+
+<!-- Data Table -->
+<div class="section">
+  <div class="section-title">JELE SODA 2026 — KOL Post Engagement <span class="section-subtitle">(29 Creators)</span></div>
+  <div class="tbl-toolbar">
+    <span class="tbl-btn" onclick="addKOLPrompt()">+ Add Record</span>
+    <span class="tbl-btn">🔍 Filter</span>
+    <span class="tbl-btn">📊 Group By</span>
+    <span class="tbl-btn">↕ Sort</span>
+  </div>
+  <div class="tbl-wrap"><table class="data" id="kolTable"></table></div>
+</div>
+
+<!-- Rankings Row -->
+<div class="grid-3">
+  <div class="section">
+    <div class="section-title">Most View Count (View)</div>
+    <div id="rankViews" class="podium"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Ranking - Top Engagement</div>
+    <div id="rankEngagement" class="podium"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Most Likes Count</div>
+    <div id="rankLikes" class="podium"></div>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="section">
+    <div class="section-title">Most Comments Count</div>
+    <div id="rankComments" class="podium"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Most Shares Count</div>
+    <div id="rankShares" class="podium"></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Sentiment Overview</div>
+    <div style="display:flex;align-items:center;gap:16px;padding:20px">
+      <div style="width:120px;height:120px"><canvas id="sentimentChart"></canvas></div>
+      <div id="sentimentLegend" style="font-size:13px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Trend Charts -->
+<div class="grid-2">
+  <div class="section">
+    <div class="section-title">Daily Views/Reach Trend by Creators</div>
+    <div class="chart-wrap tall"><canvas id="dailyViewsChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-title">KPI vs Actual Performance Reach/View</div>
+    <div class="chart-wrap tall"><canvas id="kpiVsActualChart"></canvas></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="section">
+    <div class="section-title">Daily Engagement Trend</div>
+    <div class="chart-wrap tall"><canvas id="dailyEngagementChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Daily Views/Reach Trend</div>
+    <div class="chart-wrap tall"><canvas id="dailyViewsReachChart"></canvas></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ==================== SAMPLE DATA ====================
+const COLORS = ['#3370ff','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#a855f7','#0ea5e9','#eab308','#10b981','#f43f5e','#7c3aed','#0284c7','#65a30d'];
+
+let KOL_DATA = [  // auto-updated 03 Mar 2026 21:10
+  // === Main ===
+  {username:'biw_songkran',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1900000,views:30300,likes:2442,shares:12,comments:11,saves:12,posts:1,kpi_views:10000000,posted:true,link:'https://vt.tiktok.com/ZSm7UqSxm/',batch:'Main'},
+  {username:'fasin22052545',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:297900,views:2491,likes:117,shares:6,comments:5,saves:5,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaAb2h/',batch:'Main'},
+  {username:'ovapachannel',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:397200,views:2894,likes:142,shares:1,comments:2,saves:6,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcm17pD/',batch:'Main'},
+  {username:'jack.ittiphon',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1900000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Main'},
+  {username:'nophuwanet',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Main'},
+  // === Batch 1 ===
+  {username:'plugsweden',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:198800,views:300,likes:24,shares:1,comments:3,saves:2,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcapBu1/',batch:'Batch 1'},
+  {username:'pakkaput17',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:369700,views:1618,likes:43,shares:2,comments:2,saves:1,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaGQy3/',batch:'Batch 1'},
+  {username:'kuanpuantiew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1100000,views:13500,likes:740,shares:56,comments:18,saves:33,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcato1w/',batch:'Batch 1'},
+  {username:'pexjakkajee',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1400000,views:14500,likes:174,shares:5,comments:6,saves:13,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7yUL5N/',batch:'Batch 1'},
+  {username:'puwanaipison',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:335900,views:8085,likes:534,shares:24,comments:16,saves:11,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaTqdj/',batch:'Batch 1'},
+  {username:'gotarm65',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:563000,views:2903,likes:171,shares:19,comments:5,saves:6,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7MXU59/',batch:'Batch 1'},
+  {username:'tikbadai',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:680800,views:1385,likes:55,shares:1,comments:3,saves:5,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcW2HWK/',batch:'Batch 1'},
+  {username:'patpaladmuang',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:243700,views:1211,likes:54,shares:2,comments:0,saves:4,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaqqea/',batch:'Batch 1'},
+  // === Batch 2 ===
+  {username:'saokrungthep',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:235200,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'ll0499',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:248000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'pooliepraew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1200000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'f_u_i_',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:212200,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'coochamp',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:639100,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'aodbom2',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'wootza5555',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:985100,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  {username:'royver_th',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:793300,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 2'},
+  // === Batch 3 ===
+  {username:'bookteerapat',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:694700,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
+  {username:'juno55555',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:2600000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
+  {username:'bunyaporn_2009',tier:'Mega',platform:'TikTok',category:'ภาคใต้',followers:5900000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
+  {username:'thebellchanel',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:331400,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
+  {username:'tan_slaz19',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:143800,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
+  // === Batch 5 ===
+  {username:'kayshomebar',tier:'Micro',platform:'TikTok',category:'Mixology',followers:39100,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 5'},
+  {username:'raa_reun_core',tier:'Macro',platform:'TikTok',category:'Mixology',followers:424000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 5'},
+  {username:'maxk_litt',tier:'Macro',platform:'TikTok',category:'Mixology',followers:703600,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 5'},
+];
+
+// Daily data (simulated based on screenshot patterns)
+function generateDailyData(kol, days) {
+  const data = [];
+  const baseDate = new Date('2026-03-01');
+  const baseViews = kol.views / days;
+  const baseEng = (kol.likes + kol.comments + kol.shares) / days;
+  for (let i = 0; i < days; i++) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() + i);
+    const spike = (i === 4 || i === 12) ? (Math.random() * 3 + 2) : 1;
+    data.push({
+      date: d.toISOString().slice(0, 10),
+      views: Math.round(baseViews * spike * (0.5 + Math.random())),
+      engagement: Math.round(baseEng * spike * (0.3 + Math.random() * 1.4))
+    });
+  }
+  return data;
+}
+
+let DAILY_DATA = {};
+KOL_DATA.forEach(k => { DAILY_DATA[k.username] = generateDailyData(k, 28); });
+
+let filteredData = [...KOL_DATA];
+let charts = {};
+
+// ==================== INIT ====================
+function init() {
+  populateFilters();
+  applyFilters();
+}
+
+function populateFilters() {
+  populateSelect('filterPlatform', [...new Set(KOL_DATA.map(k => k.platform))]);
+  populateSelect('filterCategory', [...new Set(KOL_DATA.map(k => k.category))]);
+  populateSelect('filterTier', [...new Set(KOL_DATA.map(k => k.tier))]);
+  populateSelect('filterBatch', [...new Set(KOL_DATA.map(k => k.batch).filter(Boolean))]);
+  populateSelect('filterKOL', KOL_DATA.map(k => k.username));
+}
+
+function populateSelect(id, values) {
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  values.sort().forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  sel.value = current;
+}
+
+function applyFilters() {
+  const platform = document.getElementById('filterPlatform').value;
+  const category = document.getElementById('filterCategory').value;
+  const tier = document.getElementById('filterTier').value;
+  const kol = document.getElementById('filterKOL').value;
+
+  const batch = document.getElementById('filterBatch').value;
+  const status = document.getElementById('filterStatus').value;
+
+  filteredData = KOL_DATA.filter(k => {
+    if (platform !== 'all' && k.platform !== platform) return false;
+    if (category !== 'all' && k.category !== category) return false;
+    if (tier !== 'all' && k.tier !== tier) return false;
+    if (batch !== 'all' && k.batch !== batch) return false;
+    if (status === 'posted' && !k.posted) return false;
+    if (status === 'pending' && k.posted) return false;
+    if (kol !== 'all' && k.username !== kol) return false;
+    return true;
+  });
+
+  renderKPIs();
+  renderTable();
+  renderRankings();
+  renderCharts();
+}
+
+// ==================== KPI CARDS ====================
+function renderKPIs() {
+  const d = filteredData;
+  const sum = (fn) => d.reduce((a, k) => a + fn(k), 0);
+  const totalViews = sum(k => k.views);
+  const totalLikes = sum(k => k.likes);
+  const totalShares = sum(k => k.shares);
+  const totalComments = sum(k => k.comments);
+  const totalSaves = sum(k => k.saves);
+  const totalFollowers = sum(k => k.followers);
+  const totalPosts = sum(k => k.posts);
+  const totalEng = totalLikes + totalComments + totalShares + totalSaves;
+  const avgEng = d.length ? Math.round(totalEng / d.length) : 0;
+  const avgERViews = totalViews > 0 ? ((totalEng / totalViews) * 100).toFixed(1) : '0.0';
+  const avgERFollowers = totalFollowers > 0 ? ((totalEng / totalFollowers) * 100).toFixed(1) : '0.0';
+
+  const postedCount = d.filter(k => k.posted).length;
+  const pendingCount = d.length - postedCount;
+
+  // Row 1
+  document.getElementById('kpiRow1').innerHTML = [
+    kpiCard('Total Creators', d.length, `✅ ${postedCount} Posted · ⏳ ${pendingCount} Pending`),
+    kpiCard('Total Views/Reach', fmtNum(totalViews), ''),
+    kpiCard('Total Likes', fmtNum(totalLikes), ''),
+    kpiCard('Total Share', fmtNum(totalShares), ''),
+    kpiCard('Total Comment', fmtNum(totalComments), ''),
+    kpiCard('Total Save/Collect', fmtNum(totalSaves), ''),
+  ].join('');
+
+  // Row 2
+  document.getElementById('kpiRow2').innerHTML = [
+    kpiCard('Total Followers', fmtNum(totalFollowers), ''),
+    kpiCard('Total Views/Reach', '0', 'Discrepancy rate —', true),
+    kpiCard('Total Likes_Daily', '0', 'Discrepancy rate —', true),
+    kpiCard('Total Share_Daily', '0', 'Discrepancy rate —', true),
+    kpiCard('Total Comment_Daily', '0', 'Discrepancy rate —', true),
+    kpiCard('Total Save/Collect', '0', 'Discrepancy rate —', true),
+  ].join('');
+
+  // Row 3
+  const platformHTML = `<div class="kpi-card"><div class="kpi-label">Platform</div><div style="display:flex;align-items:center;gap:12px;margin-top:8px"><canvas id="platformDonut" width="60" height="60" style="width:60px;height:60px"></canvas><div style="font-size:12px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3370ff;margin-right:4px"></span>TikTok</div></div></div>`;
+
+  document.getElementById('kpiRow3').innerHTML = [
+    kpiCard('Total Posts', totalPosts, ''),
+    platformHTML,
+    kpiCard('Total Engagement', fmtNum(totalEng), ''),
+    kpiCard('Avg Engagement', fmtNum(avgEng), ''),
+    kpiCard('Avg ER% By Views', avgERViews + '%', '', false, true),
+    kpiCard('Avg ER% By Followers', avgERFollowers + '%', '', false, true),
+  ].join('');
+
+  // Platform donut
+  setTimeout(() => {
+    const pCtx = document.getElementById('platformDonut');
+    if (pCtx) {
+      new Chart(pCtx, {
+        type: 'doughnut',
+        data: { labels: ['TikTok'], datasets: [{ data: [100], backgroundColor: ['#3370ff'], borderWidth: 0 }] },
+        options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '65%' }
+      });
+    }
+  }, 50);
+}
+
+function kpiCard(label, value, sub, isDailyZero, isPercent) {
+  return `<div class="kpi-card">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value" style="${isDailyZero ? 'color:#ccc' : ''}">${value}</div>
+    ${sub ? `<div class="discrepancy">${sub}</div>` : ''}
+  </div>`;
+}
+
+function fmtNum(n) {
+  if (n === undefined || n === null) return '0';
+  return Number(n).toLocaleString();
+}
+
+// ==================== TABLE ====================
+function renderTable() {
+  const t = document.getElementById('kolTable');
+  let html = '<thead><tr>';
+  html += '<th onclick="sortTable(\'_idx\')">#</th>';
+  html += '<th onclick="sortTable(\'username\')">KOL_Username</th>';
+  html += '<th onclick="sortTable(\'batch\')">Batch</th>';
+  html += '<th onclick="sortTable(\'posted\')">Status</th>';
+  html += '<th>Link Post</th>';
+  html += '<th onclick="sortTable(\'tier\')">Tier</th>';
+  html += '<th onclick="sortTable(\'category\')">Category</th>';
+  html += '<th onclick="sortTable(\'followers\')">Followers</th>';
+  html += '<th onclick="sortTable(\'views\')">Views</th>';
+  html += '<th onclick="sortTable(\'likes\')">Likes</th>';
+  html += '<th onclick="sortTable(\'shares\')">Shares</th>';
+  html += '<th onclick="sortTable(\'comments\')">Comments</th>';
+  html += '<th onclick="sortTable(\'saves\')">Saves</th>';
+  html += '<th onclick="sortTable(\'engagement\')">Engagement</th>';
+  html += '<th onclick="sortTable(\'er_views\')">ER% Views</th>';
+  html += '</tr></thead><tbody>';
+
+  const sorted = [...filteredData].sort((a,b) => {
+    // Sort posted first, then by views
+    if (a.posted !== b.posted) return a.posted ? -1 : 1;
+    return b.views - a.views;
+  });
+  sorted.forEach((k, i) => {
+    const eng = k.likes + k.comments + k.shares + k.saves;
+    const erV = k.views > 0 ? ((eng / k.views) * 100).toFixed(1) + '%' : '—';
+    const statusBadge = k.posted
+      ? '<span class="badge" style="background:#22c55e20;color:#16a34a">Posted</span>'
+      : '<span class="badge" style="background:#f59e0b20;color:#d97706">Pending</span>';
+    const linkCell = k.link
+      ? `<a href="${k.link}" target="_blank" style="color:var(--blue);text-decoration:none;font-size:12px" title="${k.link}">🔗 View Post</a>`
+      : '<span style="color:#ccc">—</span>';
+    const rowStyle = k.posted ? '' : 'opacity:0.55';
+    html += `<tr style="${rowStyle}">`;
+    html += `<td>${i + 1}</td>`;
+    html += `<td><strong>${k.username}</strong></td>`;
+    html += `<td><span class="badge" style="background:#3370ff15;color:#3370ff">${k.batch || '—'}</span></td>`;
+    html += `<td>${statusBadge}</td>`;
+    html += `<td>${linkCell}</td>`;
+    html += `<td><span class="badge badge-${k.tier.toLowerCase()}">${k.tier}</span></td>`;
+    html += `<td><span class="badge ${getCategoryBadge(k.category)}">${k.category}</span></td>`;
+    html += `<td style="text-align:right">${fmtNum(k.followers)}</td>`;
+    html += `<td style="text-align:right">${fmtNum(k.views)}</td>`;
+    html += `<td style="text-align:right">${fmtNum(k.likes)}</td>`;
+    html += `<td style="text-align:right">${fmtNum(k.shares)}</td>`;
+    html += `<td style="text-align:right">${fmtNum(k.comments)}</td>`;
+    html += `<td style="text-align:right">${fmtNum(k.saves)}</td>`;
+    html += `<td style="text-align:right"><strong>${fmtNum(eng)}</strong></td>`;
+    html += `<td style="text-align:right">${erV}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  t.innerHTML = html;
+}
+
+function getCategoryBadge(cat) {
+  if (cat.includes('กลาง')) return 'badge-food';
+  if (cat.includes('เหนือ')) return 'badge-family';
+  if (cat.includes('ใต้')) return 'badge-beauty';
+  if (cat.includes('อีสาน')) return 'badge-tiktok';
+  if (cat === 'Mixology') return 'badge-nano';
+  return 'badge-food';
+}
+
+let sortField = null, sortDir = 'desc';
+function sortTable(field) {
+  if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortField = field; sortDir = 'desc'; }
+  filteredData.sort((a, b) => {
+    let av, bv;
+    if (field === 'engagement') {
+      av = a.likes + a.comments + a.shares + a.saves;
+      bv = b.likes + b.comments + b.shares + b.saves;
+    } else if (field === 'er_views') {
+      const ea = a.likes + a.comments + a.shares + a.saves;
+      const eb = b.likes + b.comments + b.shares + b.saves;
+      av = a.views > 0 ? ea / a.views : 0;
+      bv = b.views > 0 ? eb / b.views : 0;
+    } else {
+      av = a[field]; bv = b[field];
+    }
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = (bv||'').toLowerCase(); }
+    if (typeof av === 'boolean') { av = av ? 1 : 0; bv = bv ? 1 : 0; }
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+  renderTable();
+}
+
+// ==================== RANKINGS ====================
+function renderRankings() {
+  const d = [...filteredData];
+  renderRank('rankViews', d.sort((a,b) => b.views - a.views), 'views');
+  renderRank('rankEngagement', d.sort((a,b) => (b.likes+b.comments+b.shares+b.saves) - (a.likes+a.comments+a.shares+a.saves)), k => k.likes+k.comments+k.shares+k.saves);
+  renderRank('rankLikes', d.sort((a,b) => b.likes - a.likes), 'likes');
+  renderRank('rankComments', d.sort((a,b) => b.comments - a.comments), 'comments');
+  renderRank('rankShares', d.sort((a,b) => b.shares - a.shares), 'shares');
+  renderSentiment();
+}
+
+function renderRank(containerId, sorted, field) {
+  const el = document.getElementById(containerId);
+  const getValue = typeof field === 'function' ? field : (k => k[field]);
+  const top3 = sorted.slice(0, 3);
+  const rest = sorted.slice(3, 10);
+
+  // Podium: show in order 2-1-3
+  const order = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : top3;
+
+  let html = '<div class="podium-top">';
+  order.forEach((k, i) => {
+    const rank = i === 0 ? 2 : i === 1 ? 1 : 3;
+    const medalClass = `medal-${rank}`;
+    html += `<div class="podium-item">
+      <div class="medal ${medalClass}">${rank}</div>
+      <div class="name" title="${k.username}">${k.username.length > 12 ? k.username.slice(0,10)+'...' : k.username}</div>
+      <div class="val">${fmtNum(getValue(k))}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  html += '<div class="rank-list">';
+  rest.forEach((k, i) => {
+    html += `<div class="rank-row">
+      <span class="rank-num">${i + 4}</span>
+      <span class="rank-name">${k.username}</span>
+      <span class="rank-val">${fmtNum(getValue(k))}</span>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderSentiment() {
+  if (charts.sentiment) charts.sentiment.destroy();
+  const ctx = document.getElementById('sentimentChart');
+  charts.sentiment = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: ['N/A'], datasets: [{ data: [100], backgroundColor: ['#3370ff'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
+  });
+  document.getElementById('sentimentLegend').innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3370ff;margin-right:4px"></span> N/A: 1 (100%)';
+}
+
+// ==================== CHARTS ====================
+function renderCharts() {
+  renderViewsByCreator();
+  renderDailyViews();
+  renderDailyEngagement();
+  renderDailyViewsReach();
+  renderKPIvsActual();
+}
+
+function renderViewsByCreator() {
+  if (charts.viewsByCreator) charts.viewsByCreator.destroy();
+  const labels = filteredData.map(k => k.username);
+  const dates = [];
+  const baseDate = new Date('2026-03-01');
+  for (let i = 0; i < 16; i++) {
+    const d = new Date(baseDate); d.setDate(d.getDate() + i);
+    dates.push(d.toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'}));
+  }
+
+  const datasets = dates.map((date, di) => ({
+    label: date,
+    data: filteredData.map(k => {
+      const daily = DAILY_DATA[k.username];
+      return daily && daily[di] ? daily[di].views : 0;
+    }),
+    borderColor: COLORS[di % COLORS.length],
+    backgroundColor: COLORS[di % COLORS.length] + '15',
+    fill: true,
+    borderWidth: 1.5,
+    pointRadius: 0,
+    tension: 0.4,
+  }));
+
+  charts.viewsByCreator = new Chart(document.getElementById('viewsByCreatorChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 8, font: { size: 10 } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } },
+        y: { beginAtZero: true, ticks: { callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
+      }
+    }
+  });
+}
+
+function renderDailyViews() {
+  if (charts.dailyViews) charts.dailyViews.destroy();
+  const dates = DAILY_DATA[filteredData[0]?.username]?.map(d => d.date) || [];
+
+  const datasets = filteredData.slice(0, 20).map((k, i) => ({
+    label: k.username,
+    data: (DAILY_DATA[k.username] || []).map(d => d.views),
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: 1.5,
+    pointRadius: 2,
+    pointBackgroundColor: COLORS[i % COLORS.length],
+    fill: false,
+    tension: 0,
+  }));
+
+  charts.dailyViews = new Chart(document.getElementById('dailyViewsChart'), {
+    type: 'scatter',
+    data: { labels: dates, datasets: datasets.map(ds => ({...ds, type: 'scatter', data: ds.data.map((v, i) => ({x: i, y: v}))})) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 6, font: { size: 9 } } } },
+      scales: {
+        x: { type: 'linear', ticks: { callback: (v) => dates[v] ? dates[v].slice(5) : '', font: { size: 9 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
+      }
+    }
+  });
+}
+
+function renderDailyEngagement() {
+  if (charts.dailyEng) charts.dailyEng.destroy();
+  const dates = DAILY_DATA[filteredData[0]?.username]?.map(d => d.date) || [];
+
+  const datasets = filteredData.slice(0, 20).map((k, i) => ({
+    label: k.username,
+    data: (DAILY_DATA[k.username] || []).map(d => d.engagement),
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: 2,
+    pointRadius: 0,
+    fill: false,
+    tension: 0.3,
+  }));
+
+  charts.dailyEng = new Chart(document.getElementById('dailyEngagementChart'), {
+    type: 'line',
+    data: { labels: dates, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 6, font: { size: 9 } } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 9 } } },
+        y: { beginAtZero: true, ticks: { callback: v => fmtNum(v) } }
+      }
+    }
+  });
+}
+
+function renderDailyViewsReach() {
+  if (charts.dailyVR) charts.dailyVR.destroy();
+  const dates = DAILY_DATA[filteredData[0]?.username]?.map(d => d.date) || [];
+
+  const viewsPerDay = dates.map((_, di) => filteredData.reduce((s, k) => s + ((DAILY_DATA[k.username] || [])[di]?.views || 0), 0));
+  const engPerDay = dates.map((_, di) => filteredData.reduce((s, k) => s + ((DAILY_DATA[k.username] || [])[di]?.engagement || 0), 0));
+
+  charts.dailyVR = new Chart(document.getElementById('dailyViewsReachChart'), {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        { label: 'Current_Views', data: viewsPerDay.map((v, i) => viewsPerDay.slice(0, i+1).reduce((a,b)=>a+b,0)), borderColor: '#3370ff', borderWidth: 2, pointRadius: 1, fill: false, tension: 0.3 },
+        { label: 'Current_Engagement', data: engPerDay.map((v, i) => engPerDay.slice(0, i+1).reduce((a,b)=>a+b,0)), borderColor: '#22c55e', borderWidth: 2, pointRadius: 1, fill: false, tension: 0.3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 12 } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 9 } } },
+        y: { beginAtZero: true, ticks: { callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
+      }
+    }
+  });
+}
+
+function renderKPIvsActual() {
+  if (charts.kpiActual) charts.kpiActual.destroy();
+  const sorted = [...filteredData].sort((a,b) => a.username.localeCompare(b.username));
+
+  charts.kpiActual = new Chart(document.getElementById('kpiVsActualChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(k => k.username),
+      datasets: [
+        { label: 'Commit_KPI_VIEW_REACH', data: sorted.map(k => k.kpi_views), backgroundColor: '#3370ff55', borderColor: '#3370ff', borderWidth: 1 },
+        { label: 'Total_Views_max', data: sorted.map(k => k.views), backgroundColor: '#22c55e55', borderColor: '#22c55e', borderWidth: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 12 } } },
+      scales: {
+        x: { beginAtZero: true, ticks: { callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ==================== IMPORT / EXPORT ====================
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return alert('CSV ว่าง');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+
+    const map = {
+      'kol_username': 'username', 'username': 'username', 'name': 'username', 'ชื่อ': 'username',
+      'kol_tier': 'tier', 'tier': 'tier',
+      'platform': 'platform',
+      'category': 'category',
+      'total_followers_max': 'followers', 'followers': 'followers', 'follower_count': 'followers',
+      'total_views_max': 'views', 'views': 'views', 'video_views': 'views',
+      'total_likes_max': 'likes', 'likes': 'likes',
+      'total_shares_max': 'shares', 'shares': 'shares',
+      'total_comments_max': 'comments', 'comments': 'comments',
+      'total_saves_max': 'saves', 'saves': 'saves',
+      'commit_kpi_view_reach': 'kpi_views', 'kpi_views': 'kpi_views',
+      'posts': 'posts', 'total_posts': 'posts',
+    };
+
+    const colIdx = {};
+    headers.forEach((h, i) => { if (map[h]) colIdx[map[h]] = i; });
+
+    const newData = [];
+    for (let i = 1; i < lines.length; i++) {
+      const vals = lines[i].split(',').map(v => v.trim().replace(/['"]/g, ''));
+      if (!vals[colIdx.username]) continue;
+      const followers = parseInt(vals[colIdx.followers]) || 0;
+      const tier = colIdx.tier !== undefined ? vals[colIdx.tier] : (followers < 10000 ? 'Nano' : followers < 50000 ? 'Micro' : followers < 100000 ? 'Mid' : followers < 1000000 ? 'Macro' : 'Mega');
+
+      newData.push({
+        username: vals[colIdx.username] || '',
+        tier: tier,
+        platform: colIdx.platform !== undefined ? vals[colIdx.platform] : 'TikTok',
+        category: colIdx.category !== undefined ? vals[colIdx.category] : 'Food & Lifestyle',
+        followers: followers,
+        views: parseInt(vals[colIdx.views]) || 0,
+        likes: parseInt(vals[colIdx.likes]) || 0,
+        shares: parseInt(vals[colIdx.shares]) || 0,
+        comments: parseInt(vals[colIdx.comments]) || 0,
+        saves: parseInt(vals[colIdx.saves]) || 0,
+        posts: parseInt(vals[colIdx.posts]) || 1,
+        kpi_views: parseInt(vals[colIdx.kpi_views]) || 0,
+      });
+    }
+
+    if (newData.length > 0) {
+      KOL_DATA = newData;
+      DAILY_DATA = {};
+      KOL_DATA.forEach(k => { DAILY_DATA[k.username] = generateDailyData(k, 28); });
+      filteredData = [...KOL_DATA];
+      populateFilters();
+      applyFilters();
+      alert(`นำเข้าสำเร็จ! ${newData.length} KOLs`);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportCSV() {
+  const headers = ['KOL_Username','KOL_tier','Platform','Category','Total_Followers_max','Total_Views_max','Total_likes_max','Total_shares_max','Total_comments_max','Total_saves_max','Commit_KPI_VIEW_REACH','Posts'];
+  const rows = filteredData.map(k => [k.username, k.tier, k.platform, k.category, k.followers, k.views, k.likes, k.shares, k.comments, k.saves, k.kpi_views, k.posts].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kol_data_export.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function addKOLPrompt() {
+  const username = prompt('TikTok Username (ไม่ต้องใส่ @):');
+  if (!username) return;
+  const followers = parseInt(prompt('จำนวน Followers:', '10000')) || 0;
+  const views = parseInt(prompt('Total Views:', '50000')) || 0;
+  const likes = parseInt(prompt('Total Likes:', '500')) || 0;
+  const shares = parseInt(prompt('Total Shares:', '10')) || 0;
+  const comments = parseInt(prompt('Total Comments:', '5')) || 0;
+  const saves = parseInt(prompt('Total Saves:', '20')) || 0;
+  const category = prompt('Category:', 'Food & Lifestyle') || 'Food & Lifestyle';
+  const kpi = parseInt(prompt('KPI Views เป้าหมาย:', '50000')) || 0;
+
+  const tier = followers < 10000 ? 'Nano' : followers < 50000 ? 'Micro' : followers < 100000 ? 'Mid' : followers < 1000000 ? 'Macro' : 'Mega';
+
+  KOL_DATA.push({ username, tier, platform: 'TikTok', category, followers, views, likes, shares, comments, saves, posts: 1, kpi_views: kpi });
+  DAILY_DATA[username] = generateDailyData(KOL_DATA[KOL_DATA.length - 1], 28);
+  filteredData = [...KOL_DATA];
+  populateFilters();
+  applyFilters();
+}
+
+// ==================== JSON IMPORT/EXPORT ====================
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let raw = JSON.parse(e.target.result);
+
+      // Handle array or object with items/records
+      let items = Array.isArray(raw) ? raw : (raw.items || raw.records || raw.data || []);
+
+      if (!Array.isArray(items) || items.length === 0) {
+        alert('JSON ไม่ถูกต้อง — ต้องเป็น array ของ KOL objects');
+        return;
+      }
+
+      const newData = items.map(item => {
+        // Support both flat format and Lark Base format (fields nested)
+        const f = item.fields || item;
+
+        // Extract text from Lark rich text arrays
+        const getText = (v) => {
+          if (typeof v === 'string') return v;
+          if (Array.isArray(v)) return v.map(s => s.text || s).join('');
+          if (v && typeof v === 'object' && v.text) return v.text;
+          return String(v || '');
+        };
+
+        const getNum = (v) => {
+          if (typeof v === 'number') return v;
+          const n = parseFloat(String(v).replace(/,/g, ''));
+          return isNaN(n) ? 0 : n;
+        };
+
+        const username = getText(f.KOL_Username || f.username || f.name || '');
+        const followers = getNum(f.Total_Followers || f.Total_Followers_max || f.followers || 0);
+        const tier = getText(f.KOL_Tier || f.KOL_tier || f.tier || '') ||
+          (followers < 10000 ? 'Nano' : followers < 50000 ? 'Micro' : followers < 100000 ? 'Mid' : followers < 1000000 ? 'Macro' : 'Mega');
+
+        return {
+          username: username,
+          tier: tier,
+          platform: getText(f.Platform || f.platform || 'TikTok'),
+          category: getText(f.Category || f.category || 'Food & Lifestyle'),
+          followers: followers,
+          views: getNum(f.Total_Views || f.Total_Views_max || f.views || 0),
+          likes: getNum(f.Total_Likes || f.Total_likes_max || f.likes || 0),
+          shares: getNum(f.Total_Shares || f.Total_shares_max || f.shares || 0),
+          comments: getNum(f.Total_Comments || f.Total_comments_max || f.comments || 0),
+          saves: getNum(f.Total_Saves || f.Total_saves_max || f.saves || 0),
+          posts: getNum(f.Total_Posts || f.posts || 1),
+          kpi_views: getNum(f.Commit_KPI_VIEW_REACH || f.kpi_views || 0),
+          posted: f.posted === true || f.posted === 'true',
+          link: getText(f.link || ''),
+          batch: getText(f.batch || f.Batch || ''),
+        };
+      }).filter(k => k.username);
+
+      if (newData.length > 0) {
+        KOL_DATA = newData;
+        DAILY_DATA = {};
+        KOL_DATA.forEach(k => { DAILY_DATA[k.username] = generateDailyData(k, 28); });
+        filteredData = [...KOL_DATA];
+        populateFilters();
+        applyFilters();
+        alert(`นำเข้าสำเร็จ! ${newData.length} KOLs จาก JSON`);
+      } else {
+        alert('ไม่พบข้อมูล KOL ในไฟล์ JSON');
+      }
+    } catch (err) {
+      alert('JSON parse error: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportJSON() {
+  const data = filteredData.map(k => ({
+    KOL_Username: k.username,
+    KOL_Tier: k.tier,
+    Platform: k.platform,
+    Category: k.category,
+    Total_Followers: k.followers,
+    Total_Views: k.views,
+    Total_Likes: k.likes,
+    Total_Shares: k.shares,
+    Total_Comments: k.comments,
+    Total_Saves: k.saves,
+    Total_Posts: k.posts,
+    Engagement_Rate: k.views > 0 ? parseFloat(((k.likes + k.comments + k.shares + k.saves) / k.views * 100).toFixed(2)) : 0,
+    Commit_KPI_VIEW_REACH: k.kpi_views,
+  }));
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kol_data_export.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ==================== START ====================
+init();
+</script>
+</body>
+</html>
