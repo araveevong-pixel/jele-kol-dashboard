@@ -221,7 +221,7 @@ table.data tr:hover td{background:#f7f9fc}
 // ==================== SAMPLE DATA ====================
 const COLORS = ['#3370ff','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#a855f7','#0ea5e9','#eab308','#10b981','#f43f5e','#7c3aed','#0284c7','#65a30d'];
 
-let KOL_DATA = [  // auto-updated 14 Mar 2026 08:36
+let KOL_DATA = [  // auto-updated 14 Mar 2026 08:39
   // === Main ===
   {username:'biw_songkran',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1900000,views:90400,likes:4396,shares:19,comments:11,saves:32,posts:1,kpi_views:10000000,posted:true,link:'https://vt.tiktok.com/ZSm7UqSxm/',batch:'Main'},
   {username:'fasin22052545',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:297900,views:961300,likes:719,shares:47,comments:5,saves:34,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaAb2h/',batch:'Main'},
@@ -243,7 +243,7 @@ let KOL_DATA = [  // auto-updated 14 Mar 2026 08:36
   {username:'pooliepraew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1200000,views:67800,likes:467,shares:21,comments:50,saves:53,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuFppTeB/',batch:'Batch 2'},
   {username:'f_u_i_',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:212200,views:52900,likes:2915,shares:18,comments:8,saves:44,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMC3Qs/',batch:'Batch 2'},
   {username:'coochamp',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:639100,views:136100,likes:141,shares:5,comments:5,saves:7,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY8vRRb/',batch:'Batch 2'},
-  {username:'aodbom2',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:273600,likes:3065,shares:17,comments:20,saves:53,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMrAnR/',batch:'Batch 2'},
+  {username:'aodbom2',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:273700,likes:3066,shares:17,comments:20,saves:53,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMrAnR/',batch:'Batch 2'},
   {username:'wootza5555',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:985100,views:95200,likes:128,shares:5,comments:5,saves:4,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYhbTuQ/',batch:'Batch 2'},
   {username:'royver_th',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:793300,views:167100,likes:184,shares:5,comments:6,saves:14,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY89A6a/',batch:'Batch 2'},
   // === Batch 3 ===
@@ -338,7 +338,7 @@ function applyFilters() {
 // ==================== CAMPAIGN CONFIG ====================
 const CAMPAIGN_KPI_VIEWS = 30000000;
 const CAMPAIGN_MEDIA_BUDGET = 600000;
-const CAMPAIGN_ACTUAL_USE_DEFAULT = 50000.0; // ← auto-updated by update_dashboard.py + update_actual_use.py
+const CAMPAIGN_ACTUAL_USE_DEFAULT = 60000.0; // ← auto-updated by update_dashboard.py + update_actual_use.py
 let CAMPAIGN_ACTUAL_USE = parseFloat(localStorage.getItem('jele_actual_use')) || CAMPAIGN_ACTUAL_USE_DEFAULT;
 
 function updateActualUse(amount) {
