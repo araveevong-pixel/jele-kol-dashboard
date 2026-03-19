@@ -48,6 +48,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans T
 .kpi-sub{font-size:11px;color:var(--text2);margin-top:2px}
 .kpi-card .discrepancy{font-size:11px;color:#999;margin-top:4px}
 
+/* Quick Filter Tabs */
+.quick-tabs{display:flex;gap:6px;margin-bottom:var(--gap);flex-wrap:wrap}
+.quick-tab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;font-weight:500;color:var(--text2);transition:all .2s}
+.quick-tab:hover{border-color:var(--blue);color:var(--blue)}
+.quick-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.quick-tab .count{background:rgba(0,0,0,0.1);padding:1px 6px;border-radius:10px;font-size:10px;margin-left:4px}
+.quick-tab.active .count{background:rgba(255,255,255,0.2)}
+
 /* Section */
 .section{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:var(--gap)}
 .section-title{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)}
@@ -157,8 +165,11 @@ table.data tr:hover td{background:#f7f9fc}
   <select id="filterKOL" onchange="applyFilters()"><option value="all">All Creators</option></select>
 </div>
 
+<!-- Quick Filter Tabs -->
+<div class="quick-tabs" id="quickTabs"></div>
+
 <!-- KPI Row 0: Campaign Overview -->
-<div style="margin-bottom:6px;font-weight:700;font-size:14px;color:var(--blue);display:flex;align-items:center;gap:6px">🎯 Campaign Overview</div>
+<div style="margin-bottom:6px;font-weight:700;font-size:14px;color:var(--blue);display:flex;align-items:center;gap:6px" id="campaignLabel">🎯 Campaign Overview</div>
 <div class="kpi-grid" id="kpiRow0"></div>
 
 <!-- KPI Row 1 -->
@@ -221,20 +232,20 @@ table.data tr:hover td{background:#f7f9fc}
 // ==================== SAMPLE DATA ====================
 const COLORS = ['#3370ff','#22c55e','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6','#e11d48','#a855f7','#0ea5e9','#eab308','#10b981','#f43f5e','#7c3aed','#0284c7','#65a30d'];
 
-let KOL_DATA = [  // auto-updated 19 Mar 2026 09:53
+let KOL_DATA = [  // auto-updated 19 Mar 2026 12:23
   // === Main ===
-  {username:'biw_songkran',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1900000,views:106200,likes:4625,shares:21,comments:10,saves:34,posts:1,kpi_views:10000000,posted:true,link:'https://vt.tiktok.com/ZSm7UqSxm/',batch:'Main'},
+  {username:'biw_songkran',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1900000,views:106400,likes:4626,shares:21,comments:10,saves:34,posts:1,kpi_views:10000000,posted:true,link:'https://vt.tiktok.com/ZSm7UqSxm/',batch:'Main'},
   {username:'fasin22052545',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:297900,views:961800,likes:724,shares:47,comments:5,saves:33,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaAb2h/',batch:'Main'},
-  {username:'ovapachannel',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:397200,views:1100000,likes:633,shares:50,comments:3,saves:55,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcm17pD/',batch:'Main'},
+  {username:'ovapachannel',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:397200,views:1100000,likes:635,shares:50,comments:3,saves:55,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcm17pD/',batch:'Main'},
   {username:'jack.ittiphon',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1900000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Main'},
   {username:'nophuwanet',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Main'},
   // === Batch 1 ===
-  {username:'plugsweden',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:198800,views:9284,likes:22,shares:5,comments:2,saves:2,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSukQWcn8/',batch:'Batch 1'},
+  {username:'plugsweden',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:198800,views:9285,likes:22,shares:5,comments:2,saves:2,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSukQWcn8/',batch:'Batch 1'},
   {username:'pakkaput17',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:369700,views:432500,likes:252,shares:7,comments:3,saves:10,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaGQy3/',batch:'Batch 1'},
-  {username:'kuanpuantiew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1100000,views:193700,likes:1872,shares:205,comments:20,saves:79,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcato1w/',batch:'Batch 1'},
-  {username:'pexjakkajee',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1400000,views:239600,likes:427,shares:21,comments:7,saves:29,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7yUL5N/',batch:'Batch 1'},
+  {username:'kuanpuantiew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1100000,views:193800,likes:1876,shares:205,comments:20,saves:79,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcato1w/',batch:'Batch 1'},
+  {username:'pexjakkajee',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1400000,views:239600,likes:428,shares:21,comments:7,saves:29,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7yUL5N/',batch:'Batch 1'},
   {username:'puwanaipison',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:335900,views:130000,likes:842,shares:27,comments:17,saves:24,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaTqdj/',batch:'Batch 1'},
-  {username:'gotarm65',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:563000,views:313100,likes:390,shares:24,comments:9,saves:25,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7MXU59/',batch:'Batch 1'},
+  {username:'gotarm65',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:563000,views:313100,likes:391,shares:24,comments:9,saves:25,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSm7MXU59/',batch:'Batch 1'},
   {username:'tikbadai',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:680800,views:127400,likes:154,shares:2,comments:3,saves:11,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcW2HWK/',batch:'Batch 1'},
   {username:'patpaladmuang',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:243700,views:450200,likes:237,shares:12,comments:3,saves:31,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSmcaqqea/',batch:'Batch 1'},
   // === Batch 2 ===
@@ -242,22 +253,22 @@ let KOL_DATA = [  // auto-updated 19 Mar 2026 09:53
   {username:'ll0499',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:248000,views:302100,likes:196,shares:10,comments:1,saves:9,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY6uqJd/',batch:'Batch 2'},
   {username:'pooliepraew',tier:'Mega',platform:'TikTok',category:'ภาคกลาง',followers:1200000,views:68500,likes:481,shares:21,comments:50,saves:60,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuFppTeB/',batch:'Batch 2'},
   {username:'f_u_i_',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:212200,views:54600,likes:2968,shares:20,comments:9,saves:45,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMC3Qs/',batch:'Batch 2'},
-  {username:'coochamp',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:639100,views:137500,likes:168,shares:5,comments:6,saves:7,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY8vRRb/',batch:'Batch 2'},
-  {username:'aodbom2',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:324400,likes:3806,shares:19,comments:27,saves:71,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMrAnR/',batch:'Batch 2'},
-  {username:'wootza5555',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:985100,views:97500,likes:154,shares:6,comments:5,saves:5,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYhbTuQ/',batch:'Batch 2'},
-  {username:'royver_th',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:793300,views:172900,likes:241,shares:6,comments:6,saves:16,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY89A6a/',batch:'Batch 2'},
+  {username:'coochamp',tier:'Macro',platform:'TikTok',category:'ภาคเหนือ',followers:639100,views:137500,likes:169,shares:5,comments:6,saves:7,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY8vRRb/',batch:'Batch 2'},
+  {username:'aodbom2',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:1700000,views:325200,likes:3830,shares:19,comments:27,saves:71,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYMrAnR/',batch:'Batch 2'},
+  {username:'wootza5555',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:985100,views:97600,likes:155,shares:6,comments:5,saves:5,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuYhbTuQ/',batch:'Batch 2'},
+  {username:'royver_th',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:793300,views:173000,likes:241,shares:6,comments:6,saves:16,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuY89A6a/',batch:'Batch 2'},
   // === Batch 3 ===
-  {username:'bookteerapat',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:694700,views:153100,likes:135,shares:17,comments:4,saves:14,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumsVbBW/',batch:'Batch 3'},
-  {username:'bunyaporn_2009',tier:'Mega',platform:'TikTok',category:'ภาคใต้',followers:5900000,views:336800,likes:9597,shares:287,comments:141,saves:773,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumseLjA/',batch:'Batch 3'},
-  {username:'thebellchanel',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:331400,views:76200,likes:473,shares:7,comments:8,saves:21,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumN9avE/',batch:'Batch 3'},
-  {username:'tan_slaz19',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:143800,views:54300,likes:1053,shares:14,comments:19,saves:68,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumNqjHt/',batch:'Batch 3'},
-  {username:'armgoodsunday',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:801800,views:72000,likes:757,shares:18,comments:14,saves:34,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuaEAwaB/',batch:'Batch 3'},
-  {username:'biggesttha',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:220900,views:153100,likes:159,shares:10,comments:1,saves:8,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuasTfRG/',batch:'Batch 3'},
-  {username:'bosck999',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:1500000,views:96600,likes:744,shares:4,comments:7,saves:16,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumpv8TU/',batch:'Batch 3'},
+  {username:'bookteerapat',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:694700,views:165100,likes:141,shares:17,comments:4,saves:14,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumsVbBW/',batch:'Batch 3'},
+  {username:'bunyaporn_2009',tier:'Mega',platform:'TikTok',category:'ภาคใต้',followers:5900000,views:342100,likes:9744,shares:289,comments:142,saves:785,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumseLjA/',batch:'Batch 3'},
+  {username:'thebellchanel',tier:'Macro',platform:'TikTok',category:'ภาคใต้',followers:331400,views:79900,likes:476,shares:9,comments:9,saves:22,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumN9avE/',batch:'Batch 3'},
+  {username:'tan_slaz19',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:143800,views:55200,likes:1069,shares:14,comments:19,saves:72,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumNqjHt/',batch:'Batch 3'},
+  {username:'armgoodsunday',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:801800,views:74500,likes:762,shares:20,comments:14,saves:37,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuaEAwaB/',batch:'Batch 3'},
+  {username:'biggesttha',tier:'Macro',platform:'TikTok',category:'ภาคอีสาน',followers:220900,views:158100,likes:169,shares:10,comments:1,saves:10,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuasTfRG/',batch:'Batch 3'},
+  {username:'bosck999',tier:'Macro',platform:'TikTok',category:'ภาคกลาง',followers:1500000,views:99800,likes:770,shares:4,comments:7,saves:16,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSumpv8TU/',batch:'Batch 3'},
   {username:'juno55555',tier:'Mega',platform:'TikTok',category:'ภาคอีสาน',followers:2600000,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 3'},
   // === Batch 5 ===
-  {username:'kayshomebar',tier:'Micro',platform:'TikTok',category:'Mixology',followers:39100,views:4007,likes:214,shares:71,comments:11,saves:48,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuuWoyee/',batch:'Batch 5'},
-  {username:'raa_reun_core',tier:'Macro',platform:'TikTok',category:'Mixology',followers:424000,views:61700,likes:3216,shares:458,comments:35,saves:276,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSum5tCCk/',batch:'Batch 5'},
+  {username:'kayshomebar',tier:'Micro',platform:'TikTok',category:'Mixology',followers:39100,views:4044,likes:215,shares:71,comments:11,saves:49,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSuuWoyee/',batch:'Batch 5'},
+  {username:'raa_reun_core',tier:'Macro',platform:'TikTok',category:'Mixology',followers:424000,views:62300,likes:3247,shares:462,comments:36,saves:280,posts:1,kpi_views:0,posted:true,link:'https://vt.tiktok.com/ZSum5tCCk/',batch:'Batch 5'},
   {username:'maxk_litt',tier:'Macro',platform:'TikTok',category:'Mixology',followers:703600,views:0,likes:0,shares:0,comments:0,saves:0,posts:0,kpi_views:0,posted:false,batch:'Batch 5'},
 ];
 
@@ -298,6 +309,29 @@ function populateFilters() {
   populateSelect('filterTier', [...new Set(KOL_DATA.map(k => k.tier))]);
   populateSelect('filterBatch', [...new Set(KOL_DATA.map(k => k.batch).filter(Boolean))]);
   populateSelect('filterKOL', KOL_DATA.map(k => k.username));
+  buildQuickTabs();
+}
+
+function buildQuickTabs() {
+  const cats = [...new Set(KOL_DATA.map(k => k.category).filter(Boolean))].sort();
+  const container = document.getElementById('quickTabs');
+  const current = document.getElementById('filterCategory').value;
+
+  let html = `<div class="quick-tab ${current === 'all' ? 'active' : ''}" onclick="quickFilter('all')">🌐 ทั้งหมด<span class="count">${KOL_DATA.length}</span></div>`;
+
+  const icons = {'ภาคเหนือ':'🏔️','ภาคอีสาน':'🌾','ภาคกลาง':'🏙️','ภาคใต้':'🏖️','Mixology':'🍹'};
+  cats.forEach(c => {
+    const count = KOL_DATA.filter(k => k.category === c).length;
+    const icon = icons[c] || '📂';
+    html += `<div class="quick-tab ${current === c ? 'active' : ''}" onclick="quickFilter('${c}')">${icon} ${c}<span class="count">${count}</span></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function quickFilter(category) {
+  document.getElementById('filterCategory').value = category;
+  applyFilters();
 }
 
 function populateSelect(id, values) {
@@ -332,6 +366,7 @@ function applyFilters() {
     return true;
   });
 
+  buildQuickTabs();
   renderKPIs();
   renderTable();
   renderRankings();
@@ -353,16 +388,25 @@ function updateActualUse(amount) {
 // ==================== KPI CARDS ====================
 function renderKPIs() {
   const d = filteredData;
-  const allData = KOL_DATA; // ใช้ข้อมูลทั้งหมด (ไม่ filter) สำหรับ Campaign Overview
-  const allViews = allData.reduce((a, k) => a + k.views, 0);
-  const kpiAchieve = CAMPAIGN_KPI_VIEWS > 0 ? ((allViews / CAMPAIGN_KPI_VIEWS) * 100).toFixed(1) : '0.0';
+  const isFiltered = document.getElementById('filterCategory').value !== 'all' || document.getElementById('filterTier').value !== 'all' || document.getElementById('filterBatch').value !== 'all' || document.getElementById('filterStatus').value !== 'all' || document.getElementById('filterKOL').value !== 'all';
+
+  // Row 0 uses filteredData so it responds to grouping
+  const row0Data = d;
+  const row0Views = row0Data.reduce((a, k) => a + k.views, 0);
+  const allViews = KOL_DATA.reduce((a, k) => a + k.views, 0); // total for budget calc
+  const kpiTarget = isFiltered ? '-' : fmtNum(CAMPAIGN_KPI_VIEWS);
+  const kpiAchieve = isFiltered ? ((row0Views / CAMPAIGN_KPI_VIEWS) * 100).toFixed(1) : ((allViews / CAMPAIGN_KPI_VIEWS) * 100).toFixed(1);
   const budgetAchieve = CAMPAIGN_MEDIA_BUDGET > 0 ? ((CAMPAIGN_ACTUAL_USE / CAMPAIGN_MEDIA_BUDGET) * 100).toFixed(1) : '0.0';
+
+  const activeCategory = document.getElementById('filterCategory').value;
+  const labelSuffix = activeCategory !== 'all' ? ` — ${activeCategory}` : '';
+  document.getElementById('campaignLabel').innerHTML = `🎯 Campaign Overview${labelSuffix ? `<span style="color:var(--orange);font-size:12px;margin-left:8px">${labelSuffix}</span>` : ''}`;
 
   // Row 0: Campaign Overview
   document.getElementById('kpiRow0').innerHTML = [
-    kpiCard('KPI View', fmtNum(CAMPAIGN_KPI_VIEWS), 'เป้าหมายแคมเปญ'),
-    kpiCard('Actual Performance', fmtNum(allViews), 'ยอดวิวรวมจริง'),
-    kpiCard('KPI Achieve%', kpiAchieve + '%', allViews >= CAMPAIGN_KPI_VIEWS ? '✅ ถึงเป้าแล้ว!' : '⏳ กำลังดำเนินการ', false, parseFloat(kpiAchieve) >= 100 ? 'green' : parseFloat(kpiAchieve) >= 50 ? 'orange' : 'red'),
+    kpiCard('KPI View', isFiltered ? '-' : fmtNum(CAMPAIGN_KPI_VIEWS), isFiltered ? `กรอง: ${d.length} KOLs` : 'เป้าหมายแคมเปญ'),
+    kpiCard('Actual Performance', fmtNum(row0Views), isFiltered ? `จาก ${d.length} KOLs` : 'ยอดวิวรวมจริง'),
+    kpiCard('KPI Achieve%', kpiAchieve + '%', (isFiltered ? row0Views : allViews) >= CAMPAIGN_KPI_VIEWS ? '✅ ถึงเป้าแล้ว!' : '⏳ กำลังดำเนินการ', false, parseFloat(kpiAchieve) >= 100 ? 'green' : parseFloat(kpiAchieve) >= 50 ? 'orange' : 'red'),
     kpiCard('Media Budget', fmtNum(CAMPAIGN_MEDIA_BUDGET) + ' ฿', 'งบประมาณสื่อ'),
     kpiCard('Actual Use', fmtNum(CAMPAIGN_ACTUAL_USE) + ' ฿', '<a href=\"#\" onclick=\"promptActualUse();return false\" style=\"color:var(--blue);text-decoration:underline;font-size:11px\">📝 อัปเดตยอด</a>'),
     kpiCard('Budget Achieve%', budgetAchieve + '%', 'ใช้งบไปแล้ว', false, parseFloat(budgetAchieve) > 90 ? 'red' : parseFloat(budgetAchieve) > 60 ? 'orange' : 'green'),
