@@ -180,7 +180,8 @@ def main():
         shares = scraped.get("shares", 0) or existing.get("shares", 0)
         comments = scraped.get("comments", 0) or existing.get("comments", 0)
         saves = scraped.get("saves", 0) or existing.get("saves", 0)
-        followers = scraped.get("followers", 0) or existing.get("followers", 0) or meta["followers"]
+        # ALWAYS use metadata followers (from campaign brief), never scraped
+        followers = meta["followers"]
 
         kol = {
             "username": username,
